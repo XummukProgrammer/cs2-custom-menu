@@ -18,9 +18,10 @@
 ## information:
 
 ### requirements
-- [MetaMod](https://cs2.poggu.me/metamod/installation)
+- [MetaMod](https://github.com/alliedmodders/metamod-source)
 - [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
-
+- [Interesting-exe/WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) (optional)
+- [T3Marius/CS2ScreenMenuAPI](https://github.com/T3Marius/CS2ScreenMenuAPI) (optional)
 <br>
 
 ## example config
@@ -28,7 +29,7 @@
 **Messages** - Default: `true` (sends no permission & selecting message) <br>
 
 **Title** - Default: `"Menu"` (title of the menu) <br>
-**Type** - Default: `"html"` (options: chat/html/wasd) <br>
+**Type** - Default: `"html"` (options: chat/html/wasd/screen) <br>
 **Command** - Defualt: `""` (you can use multiple by splitting them with `,`) <br>
 **Permission** - Default: `""` (empty for no check, @css/reservation for vip) <br>
 **Team** - Default: `""` (T for Terrorist, CT for CounterTerrorist or empty for both) <br>
