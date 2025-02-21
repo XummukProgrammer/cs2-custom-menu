@@ -20,8 +20,8 @@
 ### requirements
 - [MetaMod](https://github.com/alliedmodders/metamod-source)
 - [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp)
-- [Interesting-exe/WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI) (optional)
-- [T3Marius/CS2ScreenMenuAPI](https://github.com/T3Marius/CS2ScreenMenuAPI) (optional)
+- [Interesting-exe/WASDMenuAPI](https://github.com/Interesting-exe/WASDMenuAPI)
+- [T3Marius/CS2ScreenMenuAPI](https://github.com/T3Marius/CS2ScreenMenuAPI)
 <br>
 
 ## example config
