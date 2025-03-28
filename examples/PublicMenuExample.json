@@ -1,22 +1,18 @@
 {
   "Prefix": "{green}[Menu]{default}",
-  "Messages": true,
   "Menus": {
-    "1": {
-      "Title": "Public Menu",
-      "Type": "html",
-      "Command": "css_publicmenu",
-      "Options": [
-        {
-          "Title": "List Commands",
-          "Command": "css_help"
+    "Public Menu": {
+      "Type": "CenterHtmlMenu",
+      "Command": ["css_publicmenu"],
+      "Options": {
+        "List Commands": {
+          "Command": ["css_help"]
         },
-        {
-          "Title": "Guns Menu",
-          "Command": "css_guns"
+        "Guns Menu": {
+          "Command": ["css_guns"],
+          "Confirm": true
         }
-      ]
+      }
     }
-  },
-  "ConfigVersion": 1
+  }
 }

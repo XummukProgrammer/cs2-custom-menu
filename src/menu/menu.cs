@@ -1,10 +1,11 @@
 ﻿using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Menu;
+using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
-using CS2ScreenMenuAPI;
 using Microsoft.Extensions.Localization;
+using CS2MenuManager.API.Class;
+using CS2MenuManager.API.Enum;
+using CS2MenuManager.API.Interface;
 
 public static partial class Menu
 {
@@ -12,107 +13,131 @@ public static partial class Menu
     static Config Config = Instance.Config;
     static IStringLocalizer Localizer = Instance.Localizer;
 
-    static readonly Dictionary<int, PlayerCooldown> Cooldowns = new();
-    class PlayerCooldown
-    {
-        public Dictionary<string, DateTime> OptionCooldowns { get; set; } = new Dictionary<string, DateTime>();
-    }
+    static readonly Dictionary<int, Dictionary<Config_Command, DateTime>> Cooldowns = new();
 
     [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
     public static void Open(CCSPlayerController? player, CommandInfo info)
     {
         if (player == null) return;
 
-        if (Plugin.commandMenuId.TryGetValue(info.GetCommandString, out var menuId))
+        if (Plugin.commandMenuId.TryGetValue(info.GetCommandString, out var menuName))
         {
-            var menuConfig = Instance.Config.Menus[menuId];
+            var menuConfig = Config.Menus[menuName];
 
-            string permission = menuConfig.Permission.ToLower();
-
-            string team = menuConfig.Team.ToLower();
-
-            bool isTeamValid = (team == "t" || team == "terrorist") && player.Team == CsTeam.Terrorist ||
-                               (team == "ct" || team == "counterterrorist") && player.Team == CsTeam.CounterTerrorist ||
-                               (team == "" || team == "both" || team == "all");
-
-            if ((!string.IsNullOrEmpty(permission) && !AdminManager.PlayerHasPermissions(player, permission)) || !isTeamValid)
+            if (!Utils.HasPermission(player, menuConfig.Permission, menuConfig.Team))
             {
                 player.PrintToChat(Config.Prefix + Localizer["NoPermission"]);
                 return;
             }
 
-            switch (menuConfig.Type.ToLower())
+            if (!MenuAPI.MenuTypes.TryGetValue(menuConfig.Type, out Type? menuType) || menuType == null)
             {
-                case "chat":
-                case "text":
-                    Chat.Open(player, menuId);
-                    break;
-                case "html":
-                case "center":
-                case "centerhtml":
-                case "hud":
-                    HTML.Open(player, menuId);
-                    break;
-                case "wasd":
-                case "wasdmenu":
-                    WASD.Open(player, menuId);
-                    break;
-                case "screen":
-                case "screenmenu":
-                    Screen.Open(player, menuId);
-                    break;
-                default:
-                    HTML.Open(player, menuId);
-                    break;
+                throw new InvalidOperationException(
+                    "Invalid menu type configured. Please use one of the following valid menu types:\n" +
+                    string.Join(" ,", MenuAPI.MenuTypes.Keys) + "\n" +
+                    $"Configured menu type: '{menuConfig.Type}'"
+                );
             }
+
+            OpenMenuName(player, menuName, menuType);
         }
     }
 
-    static void ExecuteOption(CCSPlayerController player, Options option)
+    public static void OpenMenuName(CCSPlayerController player, string menuName, Type menuType)
+    {
+        var menuConfig = Config.Menus[menuName];
+
+        IMenu Menu = MenuAPI.Create(menuName, menuType, menuConfig.ExitButton);
+
+        foreach (var optiondata in menuConfig.Options)
+        {
+            var optionName = optiondata.Key;
+            var option = optiondata.Value;
+
+            if (Utils.HasPermission(player, option.Permission, option.Team))
+            {
+                if (option.Disabled)
+                    Menu.AddItem(optionName, DisableOption.DisableHideNumber);
+
+                else
+                {
+                    Menu.AddItem(optionName, (player, menuOption) =>
+                    {
+                        if (option.Confirm)
+                        {
+                            IMenu confirmMenu = MenuAPI.Create(Localizer["ConfirmTitle"], menuType);
+
+                            confirmMenu.AddItem(Localizer["ConfirmAccept"], (player, confirmMenuOption) =>
+                            {
+                                ExecuteOption(player, optionName, option, Menu);
+                            });
+
+                            confirmMenu.AddItem(Localizer["ConfirmDecline"], (player, confirmMenuOption) =>
+                            {
+                                Menu.Display(player, menuConfig.DisplayTime);
+                            });
+
+                            confirmMenu.Display(player, 0);
+                        }
+                        else ExecuteOption(player, optionName, option, Menu);
+                    });
+                }
+            }
+        }
+
+        Menu.Display(player, menuConfig.DisplayTime);
+    }
+
+    static void ExecuteOption(CCSPlayerController player, string optionName, Config_Command option, IMenu Menu)
     {
         if (!Cooldowns.ContainsKey(player.Slot))
-            Cooldowns[player.Slot] = new PlayerCooldown();
+            Cooldowns[player.Slot] = new();
 
-        if (CommandCooldown(player, option.Command))
+        if (CommandCooldown(player, option))
         {
             player.PrintToChat(Config.Prefix + Localizer["Cooldown"]);
             return;
         }
 
-        if (!string.IsNullOrEmpty(option.Command))
-            player.PrintToChat(Config.Prefix + Localizer["Selected", option.Title]);
+        if (option.Message)
+            player.PrintToChat(Config.Prefix + Localizer["Selected", optionName]);
 
-        var commands = option.Command.Split(',');
-        foreach (var command in commands)
-            player.ExecuteClientCommandFromServer(command.Trim());
-
-        if (option.Sound.Contains("vsnd"))
-            player.ExecuteClientCommand($"play {option.Sound}");
+        if (!string.IsNullOrEmpty(option.SoundEvent))
+        {
+            RecipientFilter filter = [player];
+            player.EmitSound(option.SoundEvent, filter);
+        }
 
         if (option.CloseMenu)
-        {
             MenuManager.CloseActiveMenu(player);
-            WASD.WasdManager.CloseMenu(player);
-            MenuAPI.CloseActiveMenu(player);
-        }
+
+        else Menu.Display(player, Menu.MenuTime);
+
+        foreach (var command in option.Command)
+            player.ExecuteClientCommandFromServer(command);
 
         if (option.Cooldown > 0)
         {
-            Cooldowns[player.Slot].OptionCooldowns[option.Command] = DateTime.Now.AddSeconds(option.Cooldown);
+            Cooldowns[player.Slot][option] = DateTime.Now.AddSeconds(option.Cooldown);
             Instance.AddTimer(option.Cooldown, () =>
             {
-                if (Cooldowns.ContainsKey(player.Slot) && Cooldowns[player.Slot].OptionCooldowns.ContainsKey(option.Command))
-                    Cooldowns[player.Slot].OptionCooldowns.Remove(option.Command);
-            });
+                if (Cooldowns.ContainsKey(player.Slot) && Cooldowns[player.Slot].ContainsKey(option))
+                {
+                    Cooldowns[player.Slot].Remove(option);
+
+                    if (Cooldowns[player.Slot].Count <= 0)
+                        Cooldowns.Remove(player.Slot);
+                }
+            }, TimerFlags.STOP_ON_MAPCHANGE);
         }
     }
 
-    static bool CommandCooldown(CCSPlayerController? player, string command)
+    static bool CommandCooldown(CCSPlayerController? player, Config_Command option)
     {
         if (player == null || !Cooldowns.ContainsKey(player.Slot))
             return false;
 
-        if (Cooldowns[player.Slot].OptionCooldowns.TryGetValue(command, out var cooldownEndTime))
+        if (Cooldowns[player.Slot].TryGetValue(option, out var cooldownEndTime))
         {
             if (DateTime.Now < cooldownEndTime)
                 return true;

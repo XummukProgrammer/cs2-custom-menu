@@ -1,42 +1,35 @@
 {
   "Prefix": "{green}[Menu]{default}",
-  "Messages": true,
   "Menus": {
-    "1": {
-      "Title": "Admin Menu",
-      "Type": "html",
-      "Command": "css_adminmenu",
-      "Permission": "@css/generic",
-      "Options": [
-        {
-          "Title": "Change Map",
-          "Command": "css_adminmenumaps"
+    "Admin Menu": {
+      "Type": "CenterHtmlMenu",
+      "Command": ["css_adminmenu"],
+      "Permission": ["@css/generic"],
+      "Options": {
+        "Change Map": {
+          "Command": ["css_adminmenumaps"]
         },
-        {
-          "Title": "Shutdown Server",
-          "Command": "quit",
+        "Shutdown Server": {
+          "Command": ["quit"],
           "Confirm": true
         }
-      ]
+      }
     },
-    "2": {
-      "Title": "Change Map",
-      "Type": "chat",
-      "Command": "css_adminmenumaps",
-      "Permission": "@css/generic",
-      "Options": [
-        {
-          "Title": "de_mirage",
-          "Command": "map de_mirage",
+    "Change Map": {
+      "Type": "ChatMenu",
+      "Command": ["css_adminmenumaps"],
+      "Permission": ["@css/generic"],
+      "ExitButton": true,
+      "Options": {
+        "de_mirage": {
+          "Command": ["map de_mirage"],
           "Confirm": true
         },
-        {
-          "Title": "de_dust2",
-          "Command": "map de_dust2",
+        "de_dust2": {
+          "Command": ["map de_dust2"],
           "Confirm": true
         }
-      ]
+      }
     }
-  },
-  "ConfigVersion": 1
+  }
 }

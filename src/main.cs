@@ -4,7 +4,7 @@ using CounterStrikeSharp.API.Core.Translations;
 public class Plugin : BasePlugin, IPluginConfig<Config>
 {
     public override string ModuleName => "Custom Menu";
-    public override string ModuleVersion => "1.0.7";
+    public override string ModuleVersion => "1.0.8";
     public override string ModuleAuthor => "exkludera";
 
     public static Plugin Instance { get; set; } = new();
@@ -16,14 +16,10 @@ public class Plugin : BasePlugin, IPluginConfig<Config>
 
         foreach (var menu in Config.Menus)
         {
-            var commands = menu.Value.Command.ToLower();
-
-            var menuId = menu.Key;
-
-            foreach (var command in commands.Split(','))
+            foreach (var command in menu.Value.Command)
             {
-                commandMenuId[command.Trim()] = menuId;
-                AddCommand(command.Trim(), menu.Value.Title, Menu.Open);
+                commandMenuId[command] = menu.Key;
+                AddCommand(command, menu.Key, Menu.Open);
             }
         }
     }
@@ -32,10 +28,8 @@ public class Plugin : BasePlugin, IPluginConfig<Config>
     {
         foreach (var menu in Config.Menus)
         {
-            var commands = menu.Value.Command.ToLower();
-
-            foreach (var command in commands.Split(','))
-                RemoveCommand(command.Trim(), Menu.Open);
+            foreach (var command in menu.Value.Command)
+                RemoveCommand(command, Menu.Open);
         }
     }
 

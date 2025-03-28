@@ -1,32 +1,32 @@
 ﻿using CounterStrikeSharp.API.Core;
 
-public class MenuItem
+public class Config_Menu
 {
-    public string Title { get; set; } = "Menu";
-    public string Type { get; set; } = "html";
-    public string Command { get; set; } = "";
-    public string Permission { get; set; } = "";
+    public string Type { get; set; } = "CenterHtmlMenu";
+    public List<string> Command { get; set; } = [];
+    public List<string> Permission { get; set; } = [];
     public string Team { get; set; } = "";
-
-    public List<Options> Options { get; set; } = new();
+    public bool ExitButton { get; set; } = true;
+    public int DisplayTime { get; set; } = 0;
+    public Dictionary<string, Config_Command> Options { get; set; } = new();
 }
 
-public class Options
+public class Config_Command
 {
-    public string Title { get; set; } = "Command";
-    public string Command { get; set; } = "";
-    public string Permission { get; set; } = "";
+    public List<string> Command { get; set; } = [];
+    public List<string> Permission { get; set; } = [];
     public string Team { get; set; } = "";
 
-    public string Sound { get; set; } = "";
+    public string SoundEvent { get; set; } = "";
     public bool CloseMenu { get; set; } = false;
     public bool Confirm { get; set; } = false;
+    public bool Message { get; set; } = false;
+    public bool Disabled { get; set; } = false;
     public int Cooldown { get; set; } = 0;
 }
 
 public class Config : BasePluginConfig
 {
     public string Prefix { get; set; } = "{green}[Menu]{default}";
-    public bool Messages { get; set; } = true;
-    public Dictionary<string, MenuItem> Menus { get; set; } = new();
+    public Dictionary<string, Config_Menu> Menus { get; set; } = new();
 }

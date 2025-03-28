@@ -1,37 +1,25 @@
 {
   "Prefix": "{green}[Menu]{default}",
-  "Messages": true,
   "Menus": {
-    "1": {
-      "Title": "Menu Example",
-      "Type": "html",
-      "Command": "css_menu",
-      "Options": [
-        {
-          "Title": "Rules",
-          "Command": "css_rules"
+    "Rules": {
+      "Type": "CenterHtmlMenu",
+      "Command": ["css_rules"],
+      "ExitButton": false,
+      "Options": {
+        "Rule #1 keep it short or it will overflow": {
+          "Disabled": true
+        },
+        "Rule #2 keep it short or it will overflow": {
+          "Disabled": true
+        },
+        "Rule #3 keep it short or it will overflow": {
+          "Disabled": true
+        },
+        "I understand the rules.": {
+          "CloseMenu": true,
+          "Confirm": true
         }
-      ]
-    },
-    "2": {
-      "Title": "Rules Example",
-      "Type": "wasd",
-      "Command": "css_rules",
-      "Options": [
-        {
-          "Title": "#1 Input rules here, keep it short or it will overflow."
-        },
-        {
-          "Title": "#2 Input rules here, keep it short or it will overflow."
-        },
-        {
-          "Title": "#3 Input rules here, keep it short or it will overflow."
-        },
-        {
-          "Title": "I understand the rules.",
-          "CloseMenu": true
-        }
-      ]
+      }
     }
   }
 }
