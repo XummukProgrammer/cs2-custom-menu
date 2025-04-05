@@ -30,24 +30,16 @@ public static partial class Menu
                 return;
             }
 
-            if (!MenuAPI.MenuTypes.TryGetValue(menuConfig.Type, out Type? menuType) || menuType == null)
-            {
-                throw new InvalidOperationException(
-                    "Invalid menu type configured. Please use one of the following valid menu types:\n" +
-                    string.Join(" ,", MenuAPI.MenuTypes.Keys) + "\n" +
-                    $"Configured menu type: '{menuConfig.Type}'"
-                );
-            }
-
-            OpenMenuName(player, menuName, menuType);
+            OpenCustomMenu(player, menuName, menuConfig);
         }
     }
 
-    public static void OpenMenuName(CCSPlayerController player, string menuName, Type menuType)
+    public static void OpenCustomMenu(CCSPlayerController player, string menuName, Config_Menu menuConfig)
     {
-        var menuConfig = Config.Menus[menuName];
+        IMenu Menu = MenuManager.MenuByType(menuConfig.Type, menuName, Instance);
 
-        IMenu Menu = MenuAPI.Create(menuName, menuType, menuConfig.ExitButton);
+        if (menuConfig.ExitButton)
+            Menu.ExitButton = true;
 
         foreach (var optiondata in menuConfig.Options)
         {
@@ -56,32 +48,26 @@ public static partial class Menu
 
             if (Utils.HasPermission(player, option.Permission, option.Team))
             {
-                if (option.Disabled)
-                    Menu.AddItem(optionName, DisableOption.DisableHideNumber);
-
-                else
+                Menu.AddItem(optionName, (player, menuOption) =>
                 {
-                    Menu.AddItem(optionName, (player, menuOption) =>
+                    if (option.Confirm)
                     {
-                        if (option.Confirm)
+                        IMenu confirmMenu = MenuManager.MenuByType(menuConfig.Type, Localizer["ConfirmTitle"], Instance);
+
+                        confirmMenu.AddItem(Localizer["ConfirmAccept"], (player, confirmMenuOption) =>
                         {
-                            IMenu confirmMenu = MenuAPI.Create(Localizer["ConfirmTitle"], menuType);
+                            ExecuteOption(player, optionName, option, Menu);
+                        });
 
-                            confirmMenu.AddItem(Localizer["ConfirmAccept"], (player, confirmMenuOption) =>
-                            {
-                                ExecuteOption(player, optionName, option, Menu);
-                            });
+                        confirmMenu.AddItem(Localizer["ConfirmDecline"], (player, confirmMenuOption) =>
+                        {
+                            Menu.Display(player, menuConfig.DisplayTime);
+                        });
 
-                            confirmMenu.AddItem(Localizer["ConfirmDecline"], (player, confirmMenuOption) =>
-                            {
-                                Menu.Display(player, menuConfig.DisplayTime);
-                            });
-
-                            confirmMenu.Display(player, 0);
-                        }
-                        else ExecuteOption(player, optionName, option, Menu);
-                    });
-                }
+                        confirmMenu.Display(player, 0);
+                    }
+                    else ExecuteOption(player, optionName, option, Menu);
+                }, option.Disabled ? DisableOption.DisableHideNumber : DisableOption.None);
             }
         }
 
