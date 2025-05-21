@@ -1,0 +1,9 @@
+{
+  "NoPermission": "{red}У вас нет прав на использование данной команды.",
+  "Cooldown": "{red}Пункт меню недоступен некоторое время.",
+  "Selected": "{default}Выбрано: {grey}{0}",
+
+  "ConfirmTitle": "Вы уверены?",
+  "ConfirmAccept": "Да",
+  "ConfirmDecline": "Нет"
+}
