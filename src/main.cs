@@ -4,7 +4,7 @@ using CounterStrikeSharp.API.Core.Translations;
 public class Plugin : BasePlugin, IPluginConfig<Config>
 {
     public override string ModuleName => "Custom Menu";
-    public override string ModuleVersion => "1.0.9";
+    public override string ModuleVersion => "1.0.10";
     public override string ModuleAuthor => "exkludera";
 
     public static Plugin Instance { get; set; } = new();
